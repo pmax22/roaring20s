@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New York, 1924 — Escape Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Special+Elite&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c96b;
+    --cream: #f5ead8;
+    --dark: #0d0a07;
+    --brown: #2a1a0a;
+    --sepia: #8b6914;
+    --red: #8b1a1a;
+    --ink: #1a1208;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--dark);
+    color: var(--cream);
+    font-family: 'Crimson Text', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* Art Deco geometric background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(201,168,76,0.03) 40px,
+        rgba(201,168,76,0.03) 41px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 40px,
+        rgba(201,168,76,0.03) 40px,
+        rgba(201,168,76,0.03) 41px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 50px 20px 30px;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .header-ornament {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,0.4), 2px 2px 0 rgba(0,0,0,0.5);
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  header h2 {
+    font-family: 'Special Elite', cursive;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--cream);
+    opacity: 0.6;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+
+  .deco-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px auto;
+  }
+
+  .deco-line::before,
+  .deco-line::after {
+    content: '';
+    flex: 1;
+    max-width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .deco-diamond {
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  /* ===== INTRO ===== */
+  .intro-card {
+    position: relative;
+    z-index: 10;
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 36px 44px;
+    background: linear-gradient(135deg, rgba(42,26,10,0.95), rgba(13,10,7,0.98));
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 2px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.3);
+  }
+
+  .intro-card::before,
+  .intro-card::after {
+    content: '';
+    position: absolute;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+  }
+  .intro-card::before { inset: 6px; }
+  .intro-card::after { inset: 10px; }
+
+  .stamp {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: var(--cream);
+    font-family: 'Special Elite', cursive;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    border: 2px solid rgba(139,26,26,0.6);
+  }
+
+  .intro-card p {
+    font-size: 1.15rem;
+    line-height: 1.9;
+    color: var(--cream);
+    opacity: 0.88;
+    position: relative;
+    z-index: 1;
+  }
+
+  .intro-card p + p { margin-top: 14px; }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-section {
+    position: relative;
+    z-index: 10;
+    max-width: 720px;
+    margin: 30px auto 40px;
+    padding: 0 20px;
+  }
+
+  .progress-label {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sepia), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(201,168,76,0.5);
+  }
+
+  /* ===== MISSIONS ===== */
+  .missions-container {
+    position: relative;
+    z-index: 10;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .mission-card {
+    background: linear-gradient(135deg, rgba(42,26,10,0.92), rgba(13,10,7,0.95));
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.4s, box-shadow 0.4s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  .mission-card.locked {
+    opacity: 0.45;
+    filter: grayscale(0.5);
+    pointer-events: none;
+  }
+
+  .mission-card.unlocked {
+    border-color: rgba(201,168,76,0.4);
+  }
+
+  .mission-card.solved {
+    border-color: rgba(74,140,74,0.6);
+    box-shadow: 0 4px 30px rgba(0,80,0,0.25);
+  }
+
+  .mission-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 28px;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+    cursor: pointer;
+  }
+
+  .mission-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--gold);
+    opacity: 0.5;
+    min-width: 44px;
+    line-height: 1;
+  }
+
+  .mission-card.unlocked .mission-number,
+  .mission-card.solved .mission-number {
+    opacity: 1;
+  }
+
+  .mission-title-wrap { flex: 1; }
+
+  .mission-label {
+    font-family: 'Special Elite', cursive;
+    font-size: 1rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.85;
+  }
+
+  .mission-card.unlocked .mission-label,
+  .mission-card.solved .mission-label { opacity: 1; }
+
+  .mission-status {
+    font-size: 1.6rem;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .mission-body {
+    padding: 24px 28px;
+    display: none;
+  }
+
+  .mission-card.unlocked .mission-body {
+    display: block;
+  }
+
+  .mission-clue {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: var(--cream);
+    opacity: 0.85;
+    margin-bottom: 20px;
+    padding-left: 16px;
+    border-left: 2px solid rgba(201,168,76,0.3);
+    font-style: italic;
+  }
+
+  /* Answer format hint */
+  .answer-format {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    opacity: 0.55;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  /* Input row */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .answer-input {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 1px;
+    color: var(--cream);
+    font-family: 'Special Elite', cursive;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    padding: 12px 18px;
+    outline: none;
+    text-transform: uppercase;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .answer-input::placeholder {
+    color: rgba(245,234,216,0.2);
+    letter-spacing: 2px;
+  }
+
+  .answer-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201,168,76,0.2);
+  }
+
+  .answer-input.error {
+    border-color: var(--red) !important;
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .validate-btn {
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.25));
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Special Elite', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 12px 22px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background 0.3s, box-shadow 0.3s;
+    white-space: nowrap;
+  }
+
+  .validate-btn:hover {
+    background: rgba(201,168,76,0.35);
+    box-shadow: 0 0 16px rgba(201,168,76,0.25);
+  }
+
+  .feedback {
+    margin-top: 14px;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    min-height: 20px;
+    transition: opacity 0.3s;
+  }
+
+  .feedback.correct { color: #5ecc5e; }
+  .feedback.wrong { color: var(--red); }
+
+  /* Solved overlay */
+  .solved-badge {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 12px 18px;
+    background: rgba(74,140,74,0.1);
+    border: 1px solid rgba(74,140,74,0.3);
+    border-radius: 1px;
+  }
+
+  .solved-badge span {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #5ecc5e;
+  }
+
+  .mission-card.solved .solved-badge { display: flex; }
+  .mission-card.solved .input-row { display: none; }
+  .mission-card.solved .feedback { display: none; }
+
+  /* ===== ULTIMATE MISSION ===== */
+  .ultimate-card {
+    background: linear-gradient(135deg, rgba(139,26,26,0.15), rgba(42,26,10,0.95));
+    border: 1px solid rgba(139,26,26,0.4);
+  }
+
+  .ultimate-card.unlocked {
+    border-color: rgba(201,168,76,0.6);
+    box-shadow: 0 0 40px rgba(201,168,76,0.15);
+    animation: pulse-gold 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 20px rgba(201,168,76,0.1); }
+    50% { box-shadow: 0 0 50px rgba(201,168,76,0.25); }
+  }
+
+  .ultimate-card .mission-title { color: var(--gold-light); }
+
+  /* ===== VICTORY ===== */
+  #victory {
+    display: none;
+    position: relative;
+    z-index: 10;
+    max-width: 720px;
+    margin: 20px auto 60px;
+    padding: 0 20px;
+    animation: fadeInUp 1s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .victory-card {
+    background: linear-gradient(135deg, rgba(74,100,30,0.2), rgba(42,26,10,0.98));
+    border: 1px solid rgba(201,168,76,0.6);
+    border-radius: 2px;
+    padding: 50px 44px;
+    text-align: center;
+    box-shadow: 0 0 80px rgba(201,168,76,0.2);
+    position: relative;
+  }
+
+  .victory-card::before, .victory-card::after {
+    content: '';
+    position: absolute;
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 2px;
+    inset: 8px;
+  }
+
+  .victory-emoji { font-size: 3rem; margin-bottom: 16px; }
+
+  .victory-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    color: var(--gold);
+    margin-bottom: 16px;
+    text-shadow: 0 0 30px rgba(201,168,76,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  .victory-card p {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    opacity: 0.85;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 20px;
+    opacity: 0.3;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ===== LOCK ICON ===== */
+  .lock-icon {
+    font-size: 1.1rem;
+    opacity: 0.4;
+  }
+
+  /* Confetti sparkles */
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+    font-size: 1.5rem;
+    animation: sparkle-fall 1.5s ease-out forwards;
+  }
+
+  @keyframes sparkle-fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(80px) rotate(360deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-ornament">★ Enquête ★</div>
+  <h1>New York, 1924</h1>
+  <div class="deco-line"><div class="deco-diamond"></div></div>
+  <h2>Escape Game &nbsp;·&nbsp; The Roaring Twenties</h2>
+</header>
+
+
+<div class="progress-section">
+  <div class="progress-label">Progression de l'enquête</div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="missions-container" id="missionsContainer">
+
+  <!-- MISSION 1 -->
+  <div class="mission-card unlocked" id="mission-1" data-answer="ford" data-next="mission-2">
+    <div class="mission-header" onclick="toggleBody(1)">
+      <div class="mission-number">01</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 01</div>
+      </div>
+      <div class="mission-status">🔓</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-1" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(1)">
+        <button class="validate-btn" onclick="checkAnswer(1)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-1"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 2 -->
+  <div class="mission-card locked" id="mission-2" data-answer="louis" data-next="mission-3">
+    <div class="mission-header" onclick="toggleBody(2)">
+      <div class="mission-number">02</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 02</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-2" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(2)">
+        <button class="validate-btn" onclick="checkAnswer(2)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-2"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 3 -->
+  <div class="mission-card locked" id="mission-3" data-answer="harlem" data-next="mission-4">
+    <div class="mission-header" onclick="toggleBody(3)">
+      <div class="mission-number">03</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 03</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-3" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(3)">
+        <button class="validate-btn" onclick="checkAnswer(3)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-3"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 4 -->
+  <div class="mission-card locked" id="mission-4" data-answer="speakeasy" data-next="mission-5">
+    <div class="mission-header" onclick="toggleBody(4)">
+      <div class="mission-number">04</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 04</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-4" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(4)">
+        <button class="validate-btn" onclick="checkAnswer(4)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-4"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 5 -->
+  <div class="mission-card locked" id="mission-5" data-answer="prohibition" data-next="mission-6">
+    <div class="mission-header" onclick="toggleBody(5)">
+      <div class="mission-number">05</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 05</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-5" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(5)">
+        <button class="validate-btn" onclick="checkAnswer(5)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-5"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 6 -->
+  <div class="mission-card locked" id="mission-6" data-answer="22217thavenue" data-next="mission-7">
+    <div class="mission-header" onclick="toggleBody(6)">
+      <div class="mission-number">06</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 06</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-6" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(6)">
+        <button class="validate-btn" onclick="checkAnswer(6)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-6"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 7 -->
+  <div class="mission-card locked" id="mission-7" data-answer="712548=r" data-next="mission-ultimate">
+    <div class="mission-header" onclick="toggleBody(7)">
+      <div class="mission-number">07</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission 07</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-7" placeholder="ex: 123456=A" autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer(7)">
+        <button class="validate-btn" onclick="checkAnswer(7)">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-7"></div>
+      <div class="solved-badge"><span>✦ Mission accomplie — Accès suivant débloqué</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION ULTIME -->
+  <div class="mission-card ultimate-card locked" id="mission-ultimate" data-answer="flappers" data-next="victory">
+    <div class="mission-header" onclick="toggleBody('ultimate')">
+      <div class="mission-number">★</div>
+      <div class="mission-title-wrap">
+        <div class="mission-label">Mission Ultime</div>
+      </div>
+      <div class="mission-status lock-icon">🔒</div>
+    </div>
+    <div class="mission-body">
+      <div class="input-row">
+        <input class="answer-input" id="input-ultimate" placeholder="Votre réponse..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer('ultimate')">
+        <button class="validate-btn" onclick="checkAnswer('ultimate')">Valider</button>
+      </div>
+      <div class="feedback" id="feedback-ultimate"></div>
+      <div class="solved-badge"><span>✦ Enquête résolue !</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- VICTORY -->
+<div id="victory">
+  <div class="victory-card">
+    <div class="victory-emoji">🎉</div>
+    <div class="deco-line"><div class="deco-diamond"></div></div>
+    <h2>Félicitations !</h2>
+    <div class="deco-line" style="margin:12px auto;"><div class="deco-diamond"></div></div>
+    <p>Vous avez percé tous les secrets de New York en 1924. L'organisation est démantelée, et votre nom entre dans la légende de la ville qui ne dort jamais.<br><br><em>The Roaring Twenties n'auront plus de secrets pour vous.</em></p>
+  </div>
+</div>
+
+<footer>New York · 1924 · Escape Game Pédagogique</footer>
+
+<script>
+  const totalMissions = 8; // 7 + ultimate
+
+  // Count solved missions for progress
+  function updateProgress() {
+    const all = document.querySelectorAll('.mission-card');
+    const solved = document.querySelectorAll('.mission-card.solved').length;
+    const pct = Math.round((solved / totalMissions) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function toggleBody(id) {
+    const card = document.getElementById('mission-' + id);
+    if (!card || card.classList.contains('locked')) return;
+    const body = card.querySelector('.mission-body');
+    if (body) body.style.display = body.style.display === 'none' ? 'block' : 'block';
+  }
+
+  function checkAnswer(id) {
+    const card = document.getElementById('mission-' + id);
+    const input = document.getElementById('input-' + id);
+    const feedback = document.getElementById('feedback-' + id);
+    if (!card || !input || card.classList.contains('solved')) return;
+
+    const userAnswer = input.value.trim().toLowerCase().replace(/\s+/g, '');
+    const correctAnswer = card.dataset.answer.toLowerCase();
+
+    if (userAnswer === correctAnswer) {
+      // Correct!
+      feedback.textContent = '✦ Exact ! Bien joué.';
+      feedback.className = 'feedback correct';
+      card.classList.remove('unlocked');
+      card.classList.add('solved');
+
+      const statusEl = card.querySelector('.mission-status');
+      if (statusEl) statusEl.textContent = '✓';
+      statusEl.style.color = '#5ecc5e';
+      statusEl.style.fontSize = '1.4rem';
+
+      updateProgress();
+      spawnSparkles();
+
+      // Unlock next
+      const nextId = card.dataset.next;
+      if (nextId === 'victory') {
+        setTimeout(() => {
+          document.getElementById('victory').style.display = 'block';
+          document.getElementById('victory').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          spawnSparkles();
+          setTimeout(spawnSparkles, 300);
+          setTimeout(spawnSparkles, 600);
+        }, 800);
+      } else {
+        setTimeout(() => {
+          const nextCard = document.getElementById(nextId);
+          if (nextCard) {
+            nextCard.classList.remove('locked');
+            nextCard.classList.add('unlocked');
+            const nextStatus = nextCard.querySelector('.mission-status');
+            if (nextStatus) { nextStatus.textContent = '🔓'; nextStatus.className = 'mission-status'; }
+            nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 800);
+      }
+    } else {
+      // Wrong
+      feedback.textContent = '✗ Mauvaise réponse. Cherchez encore…';
+      feedback.className = 'feedback wrong';
+      input.classList.add('error');
+      setTimeout(() => input.classList.remove('error'), 500);
+    }
+  }
+
+  function spawnSparkles() {
+    const emojis = ['✨', '⭐', '🌟', '💫', '🎉'];
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'sparkle';
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.left = (10 + Math.random() * 80) + 'vw';
+        el.style.top = (Math.random() * 60) + 'vh';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1500);
+      }, i * 120);
+    }
+  }
+
+  // Init progress
+  updateProgress();
+</script>
+</body>
+</html>
