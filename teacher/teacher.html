@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Murder in a Secret Bar — Case No. 1924</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:wght@700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sepia-dark: #1a1208;
+    --sepia-warm: #7a5c2e;
+    --sepia-light: #c9a96e;
+    --sepia-cream: #f0e6c8;
+    --red-string: #c0392b;
+    --red-glow: rgba(192,57,43,0.6);
+    --paper: #e8dcc0;
+    --ink: #1c1008;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Special Elite',cursive;
+    background:var(--sepia-dark);
+    color:var(--sepia-cream);
+    min-height:100vh;
+    overflow:hidden;
+  }
+  .bg {
+    position:fixed; inset:0;
+    background:url('police.png') center/cover no-repeat;
+    filter:brightness(0.35) sepia(0.5);
+    z-index:0;
+  }
+  .grain {
+    position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.12;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:200px;
+  }
+  .vignette {
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%);
+  }
+  .container {
+    position:relative; z-index:10;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:20px; gap:0;
+  }
+  .string-line {
+    width:60%; height:2px;
+    background:linear-gradient(90deg,transparent,var(--red-string),transparent);
+    box-shadow:0 0 8px var(--red-glow);
+    margin:14px 0;
+  }
+  .case-header { text-align:center; margin-bottom:8px; }
+  .case-number {
+    font-family:'Courier Prime',monospace;
+    font-size:0.85rem; letter-spacing:0.35em;
+    color:var(--sepia-light); text-transform:uppercase; opacity:0.8;
+  }
+  .case-title {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(1.8rem,4vw,3.2rem); font-weight:900;
+    color:var(--sepia-cream);
+    text-shadow:0 0 30px rgba(201,169,110,0.4), 2px 2px 0 rgba(0,0,0,0.8);
+    letter-spacing:0.02em; line-height:1.1; margin:6px 0;
+  }
+  .case-subtitle {
+    font-family:'Courier Prime',monospace;
+    font-size:0.9rem; color:var(--red-string);
+    letter-spacing:0.2em; text-shadow:0 0 10px var(--red-glow);
+  }
+
+  /* Timer card */
+  .timer-card {
+    background:var(--paper); color:var(--ink);
+    padding:28px 52px 22px;
+    position:relative; text-align:center;
+    box-shadow:4px 4px 0 rgba(0,0,0,0.5),8px 8px 20px rgba(0,0,0,0.6),inset 0 0 40px rgba(0,0,0,0.08);
+    clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    margin:10px 0;
+  }
+  .timer-card::before {
+    content:''; position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+    width:18px; height:18px;
+    background:radial-gradient(circle at 35% 35%,#e74c3c,#8B0000);
+    border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.5); z-index:2;
+  }
+  .timer-card::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(transparent,transparent 27px,rgba(0,0,0,0.06) 27px,rgba(0,0,0,0.06) 28px);
+  }
+  .timer-label {
+    font-family:'Courier Prime',monospace;
+    font-size:0.75rem; letter-spacing:0.3em;
+    text-transform:uppercase; color:var(--sepia-warm); margin-bottom:8px;
+  }
+  .timer-display {
+    font-family:'Special Elite',cursive;
+    font-size:clamp(4rem,12vw,8rem); line-height:1;
+    color:var(--ink); text-shadow:2px 2px 0 rgba(0,0,0,0.15);
+    letter-spacing:0.08em; position:relative; z-index:1; transition:color 0.5s;
+  }
+  .timer-display.warning { color:#8B1A00; }
+  .timer-display.danger  { color:#cc0000; animation:flicker 0.8s ease-in-out infinite alternate; }
+  @keyframes flicker {
+    from { opacity:1;    text-shadow:2px 2px 0 rgba(0,0,0,.15),0 0 20px rgba(204,0,0,.4); }
+    to   { opacity:0.75; text-shadow:2px 2px 0 rgba(0,0,0,.15),0 0 40px rgba(204,0,0,.8); }
+  }
+  .timer-progress-wrap {
+    width:100%; height:6px; background:rgba(0,0,0,0.15);
+    margin-top:16px; overflow:hidden; position:relative; z-index:1;
+  }
+  .timer-progress {
+    height:100%; width:100%;
+    background:linear-gradient(90deg,var(--sepia-warm),var(--sepia-light));
+    transition:width 1s linear, background 0.5s;
+  }
+  .timer-progress.warning { background:linear-gradient(90deg,#8B4500,#c0832e); }
+  .timer-progress.danger  { background:linear-gradient(90deg,#8B1A00,#cc0000); }
+
+  /* Controls */
+  .controls {
+    display:flex; gap:12px; margin-top:16px;
+    flex-wrap:wrap; justify-content:center; position:relative; z-index:1;
+  }
+  .btn {
+    font-family:'Special Elite',cursive;
+    font-size:0.9rem; letter-spacing:0.12em; text-transform:uppercase;
+    padding:10px 24px;
+    border:2px solid var(--sepia-light);
+    background:transparent; color:var(--sepia-cream);
+    cursor:pointer; transition:all 0.2s;
+    clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+  }
+  .btn:hover {
+    background:var(--sepia-warm); border-color:var(--sepia-cream);
+    color:var(--ink); transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  }
+  .btn.primary { background:var(--sepia-warm); color:var(--ink); }
+  .btn.primary:hover { background:var(--sepia-light); }
+  .btn.danger-btn { border-color:var(--red-string); color:var(--red-string); }
+  .btn.danger-btn:hover { background:var(--red-string); color:var(--sepia-cream); }
+  .btn.music-btn { border-color:var(--sepia-warm); color:var(--ink); background:rgba(122,92,46,0.12); font-size:0.85rem; }
+  .btn.music-btn.playing { background:var(--sepia-warm); }
+  .btn.music-btn:hover { background:var(--sepia-warm); color:var(--ink); }
+
+  /* Duration */
+  .duration-section {
+    display:flex; align-items:center; justify-content:center;
+    gap:10px; margin-top:10px; position:relative; z-index:1;
+  }
+  .row-label {
+    font-family:'Courier Prime',monospace;
+    font-size:0.75rem; letter-spacing:0.2em;
+    color:var(--sepia-warm); text-transform:uppercase;
+  }
+  .duration-select {
+    font-family:'Special Elite',cursive; font-size:0.9rem;
+    background:rgba(0,0,0,0.08); border:1px solid var(--sepia-warm);
+    color:var(--ink); padding:4px 10px; outline:none; cursor:pointer;
+  }
+  .duration-select option { background:var(--paper); color:var(--ink); }
+
+  /* Music section */
+  .music-section {
+    display:flex; align-items:center; justify-content:center;
+    gap:14px; margin-top:12px; padding-top:10px;
+    border-top:1px dashed rgba(122,92,46,0.4);
+    position:relative; z-index:1;
+  }
+  .volume-wrap { display:flex; align-items:center; gap:8px; }
+  .vol-icon {
+    font-size:1rem; color:var(--sepia-warm);
+    width:22px; text-align:center; cursor:pointer; user-select:none;
+  }
+  .volume-slider {
+    -webkit-appearance:none; appearance:none;
+    width:110px; height:4px; outline:none; cursor:pointer;
+    background:linear-gradient(90deg, var(--sepia-warm) var(--pct,50%), rgba(0,0,0,0.2) var(--pct,50%));
+  }
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance:none;
+    width:14px; height:14px;
+    background:var(--sepia-warm); border:2px solid var(--ink);
+    border-radius:50%; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+  .volume-slider::-moz-range-thumb {
+    width:14px; height:14px;
+    background:var(--sepia-warm); border:2px solid var(--ink);
+    border-radius:50%; cursor:pointer;
+  }
+  .vol-pct {
+    font-family:'Courier Prime',monospace; font-size:0.7rem;
+    color:var(--sepia-warm); width:34px; text-align:right;
+  }
+
+  /* Status */
+  .status-msg {
+    font-family:'Courier Prime',monospace;
+    font-size:0.8rem; letter-spacing:0.2em;
+    color:var(--sepia-light); text-transform:uppercase;
+    margin-top:8px; min-height:1.2em; text-align:center;
+  }
+  .stamp {
+    font-family:'Playfair Display',serif;
+    font-size:0.65rem; letter-spacing:0.3em;
+    color:var(--sepia-warm); text-transform:uppercase;
+    text-align:center; opacity:0.5; margin-top:12px;
+  }
+
+  /* Overlay */
+  .overlay {
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(0,0,0,0.92);
+    align-items:center; justify-content:center;
+    flex-direction:column; text-align:center;
+    animation:fadeIn 0.5s ease;
+  }
+  .overlay.show { display:flex; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .overlay-title {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(2.5rem,8vw,5rem); font-weight:900;
+    color:var(--red-string); animation:pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { text-shadow:0 0 20px var(--red-glow); }
+    50%      { text-shadow:0 0 60px var(--red-glow),0 0 100px var(--red-glow); }
+  }
+  .overlay-sub {
+    font-family:'Special Elite',cursive; font-size:1.2rem;
+    color:var(--sepia-cream); margin:16px 0 32px; letter-spacing:0.1em;
+  }
+
+  /* Corners */
+  .corner { position:fixed; width:60px; height:60px; border-color:var(--sepia-warm); border-style:solid; opacity:0.3; z-index:5; }
+  .corner.tl { top:20px;    left:20px;  border-width:2px 0 0 2px; }
+  .corner.tr { top:20px;    right:20px; border-width:2px 2px 0 0; }
+  .corner.bl { bottom:20px; left:20px;  border-width:0 0 2px 2px; }
+  .corner.br { bottom:20px; right:20px; border-width:0 2px 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<audio id="jazzAudio" src="jazz.mp3" loop preload="auto"></audio>
+
+<div class="container">
+
+  <div class="case-header">
+    <div class="case-number">N.Y.P.D. — 13th Precinct — Detective Bureau</div>
+    <h1 class="case-title">Murder in a Secret Bar</h1>
+    <div class="case-subtitle">⟨ Case No. 1924 ⟩</div>
+  </div>
+
+  <div class="string-line"></div>
+
+  <div class="timer-card">
+    <div class="timer-label">⏱ Temps restant pour résoudre l'enquête</div>
+    <div class="timer-display" id="timerDisplay">45:00</div>
+    <div class="timer-progress-wrap">
+      <div class="timer-progress" id="timerProgress"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="startBtn" onclick="startTimer()">▶ Démarrer</button>
+      <button class="btn" id="pauseBtn" onclick="pauseTimer()" disabled>⏸ Pause</button>
+      <button class="btn danger-btn" onclick="resetTimer()">↺ Réinitialiser</button>
+    </div>
+
+    <div class="duration-section">
+      <span class="row-label">Durée :</span>
+      <select class="duration-select" id="durationSelect" onchange="changeDuration(this.value)">
+        <option value="35">35 min</option>
+        <option value="40">40 min</option>
+        <option value="45" selected>45 min</option>
+        <option value="50">50 min</option>
+        <option value="55">55 min</option>
+      </select>
+    </div>
+
+    <div class="music-section">
+      <button class="btn music-btn" id="musicBtn" onclick="toggleMusic()">♪ Musique</button>
+      <div class="volume-wrap">
+        <span class="vol-icon" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</span>
+        <input type="range" class="volume-slider" id="volumeSlider"
+               min="0" max="100" value="50" oninput="setVolume(this.value)">
+        <span class="vol-pct" id="volPct">50%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="string-line"></div>
+
+  <div class="status-msg" id="statusMsg">En attente du début de l'enquête…</div>
+  <div class="stamp">© 1924 — New York Police Department — Dossier Confidentiel</div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-title">TEMPS ÉCOULÉ !</div>
+  <div class="overlay-sub">L'enquête n'a pas pu être résolue à temps.</div>
+  <button class="btn primary"
+    onclick="resetTimer(); document.getElementById('overlay').classList.remove('show');"
+    style="margin-top:24px;font-size:1rem;padding:14px 40px;">↺ Nouvelle partie</button>
+</div>
+
+<script>
+  let totalSeconds = 45 * 60;
+  let remaining    = totalSeconds;
+  let interval     = null;
+  let running      = false;
+  let musicPlaying = false;
+  let lastVol      = 50;
+
+  const display   = document.getElementById('timerDisplay');
+  const progress  = document.getElementById('timerProgress');
+  const statusEl  = document.getElementById('statusMsg');
+  const startBtn  = document.getElementById('startBtn');
+  const pauseBtn  = document.getElementById('pauseBtn');
+  const audio     = document.getElementById('jazzAudio');
+  const musicBtn  = document.getElementById('musicBtn');
+  const slider    = document.getElementById('volumeSlider');
+  const pctEl     = document.getElementById('volPct');
+  const iconEl    = document.getElementById('volIcon');
+
+  audio.volume = 0.5;
+
+  function fmt(s) {
+    return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+  }
+
+  function updateDisplay() {
+    display.textContent = fmt(remaining);
+    const pct = (remaining / totalSeconds) * 100;
+    progress.style.width = pct + '%';
+    const cls = remaining <= 60 ? 'danger' : remaining <= 300 ? 'warning' : '';
+    display.className  = 'timer-display'  + (cls ? ' '+cls : '');
+    progress.className = 'timer-progress' + (cls ? ' '+cls : '');
+  }
+
+  function startTimer() {
+    if (running) return;
+    running = true;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    document.getElementById('durationSelect').disabled = true;
+    statusEl.textContent = '🔍 Enquête en cours…';
+
+    interval = setInterval(() => {
+      remaining--;
+      updateDisplay();
+      if (remaining <= 300 && remaining > 60)
+        statusEl.textContent = '⚠ Moins de 5 minutes — dépêchez-vous, détectives !';
+      if (remaining <= 60 && remaining > 0)
+        statusEl.textContent = "🚨 Dernière minute ! Le coupable s'échappe !";
+      if (remaining <= 0) {
+        clearInterval(interval);
+        running = false;
+        display.textContent = '00:00';
+        progress.style.width = '0%';
+        document.getElementById('overlay').classList.add('show');
+      }
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    if (!running) {
+      startTimer();
+      pauseBtn.textContent = '⏸ Pause';
+    } else {
+      clearInterval(interval);
+      running = false;
+      startBtn.disabled = false;
+      pauseBtn.textContent = '▶ Reprendre';
+      statusEl.textContent = '⏸ Enquête suspendue…';
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(interval);
+    running = false;
+    remaining = totalSeconds;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    pauseBtn.textContent = '⏸ Pause';
+    document.getElementById('durationSelect').disabled = false;
+    statusEl.textContent = "En attente du début de l'enquête…";
+    display.className  = 'timer-display';
+    progress.className = 'timer-progress';
+    updateDisplay();
+  }
+
+  function changeDuration(val) {
+    totalSeconds = parseInt(val) * 60;
+    remaining    = totalSeconds;
+    updateDisplay();
+    statusEl.textContent = `Durée définie : ${val} minutes`;
+  }
+
+  /* ── Music ── */
+  function toggleMusic() {
+    if (musicPlaying) {
+      audio.pause();
+      musicPlaying = false;
+      musicBtn.textContent = '♪ Musique';
+      musicBtn.classList.remove('playing');
+    } else {
+      audio.play().catch(() => {
+        statusEl.textContent = '⚠ Impossible de lire jazz.mp3 — vérifiez le fichier.';
+      });
+      musicPlaying = true;
+      musicBtn.textContent = '■ Stop';
+      musicBtn.classList.add('playing');
+    }
+  }
+
+  function setVolume(val) {
+    const v = parseInt(val);
+    audio.volume = v / 100;
+    lastVol = v > 0 ? v : lastVol;
+    pctEl.textContent = v + '%';
+    iconEl.textContent = v === 0 ? '🔇' : v < 50 ? '🔉' : '🔊';
+    slider.style.setProperty('--pct', v + '%');
+  }
+
+  function toggleMute() {
+    if (audio.volume > 0) {
+      lastVol = parseInt(slider.value);
+      slider.value = 0;
+      setVolume(0);
+    } else {
+      slider.value = lastVol;
+      setVolume(lastVol);
+    }
+  }
+
+  updateDisplay();
+  setVolume(50);
+</script>
+</body>
+</html>
